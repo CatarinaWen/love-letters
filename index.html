@@ -89,7 +89,7 @@ input,textarea{width:100%;font:inherit;color:var(--ink);background:#fffaf0aa;bor
   <div class="wrap" id="wrap"><div id="scene"><svg id="bg" viewBox="0 0 1600 700" preserveAspectRatio="none"></svg><div id="layer"></div></div></div>
   <div class="meter" style="margin-top:6px">↔ 左右滑動看更寬的空間 · <span id="meter"></span></div>
   <div id="tools"></div><div class="hint" id="hint" style="display:none"></div>
-  <div class="warn" id="dbwarn" style="display:none">尚未連上共享資料庫（需要登入並在 claude.ai 開啟），目前無法留下或看到別人的紀錄。</div>
+  <div class="warn" id="dbwarn" style="display:none">正在連接資料庫…</div>
  </section>
  <aside class="card" id="panel">
   <div class="ph"><strong>✉️ 交換日記</strong><span class="meter" id="bname"></span><button id="pclose">✕</button></div>
@@ -107,6 +107,9 @@ input,textarea{width:100%;font:inherit;color:var(--ink);background:#fffaf0aa;bor
  <div class="pap"><div class="hf t"><div class="fc"><div class="sh"></div></div><div class="bc"></div></div><div class="hf b"><div class="fc"><div class="sh"></div></div></div></div>
  <div class="fl"></div><div class="fr"></div><div class="to" id="to"></div><div class="pm">收信<br>快樂</div><div class="stm" id="stm"></div></div><div id="cap"></div></div></div>
 <div id="toast"></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
 /* ===== 設定區 ===== */
 // mode:'draw' 只能選你給的圖；'draw' 可手繪。zone=可放置範圍 [x0,y0,x1,y1]（0~1）。
@@ -233,9 +236,26 @@ function sendAnim(data,si,done){const m=$('mail');document.querySelectorAll('#ma
  [600,1800,3100,4000,5000].forEach((ms,i)=>setTimeout(()=>{m.classList.add('s'+(i+1));$('cap').textContent=caps[i+1]},ms));
  setTimeout(()=>{m.className='ov';done()},6400)}
 renderTabs();enter(cur);
-(async()=>{try{const d=window.claude&&await claude.use('db');if(!d){$('dbwarn').style.display='block';return}db=d;
- try{const u=await claude.use('user');uid=u?await u.id():''}catch(e){}
- if(!uid){uid=store('lt_uid')||('g'+Math.random().toString(36).slice(2,10));put('lt_uid',uid)}
- enter(cur)}catch(e){$('dbwarn').style.display='block'}})();
-if(!window.claude)$('dbwarn').style.display='block';
+(async()=>{
+ /* ===== 只需要改這一段：貼上你的 Firebase 設定 ===== */
+ const firebaseConfig={
+  apiKey:"AIzaSyC7rLmV5rDr7jftqsxyan-P_ok4VYrL0cU",
+  authDomain:"love-letters-mgfwinter2026.firebaseapp.com",
+  projectId:"love-letters-mgfwinter2026",
+  storageBucket:"love-letters-mgfwinter2026.firebasestorage.app",
+  messagingSenderId:"411025345780",
+  appId:"1:411025345780:web:8f432e5b32c7082a4ee2a1"
+ };
+ /* ================================================== */
+ const warn=t=>{const w=$('dbwarn');w.textContent=t;w.style.display='block'};
+ try{
+  if(!window.firebase)throw new Error('Firebase SDK 沒載入（請檢查網路）');
+  if(firebaseConfig.apiKey==='YOUR_API_KEY'){warn('尚未設定 Firebase：請在 index.html 貼上 firebaseConfig。');return}
+  firebase.initializeApp(firebaseConfig);
+  const cred=await firebase.auth().signInAnonymously();
+  uid=cred.user.uid;
+  db=firebase.firestore();
+  enter(cur);
+ }catch(e){console.error(e);warn('無法連上資料庫：'+(e.message||e))}
+})();
 </script></body></html>
