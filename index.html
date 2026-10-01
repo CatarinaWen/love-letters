@@ -83,12 +83,14 @@ input,textarea{width:100%;font:inherit;color:var(--ink);background:#fffaf0aa;bor
 
 .m.r{margin-left:18px;border-left:3px solid var(--pink)}.m .acts{flex-wrap:wrap}
 #rbar{display:none;font-size:12px;color:var(--wax);margin-bottom:6px}#rbar button{font-size:11px;padding:0 6px}
-#album{display:none;background:#5b3a29;background-image:repeating-linear-gradient(90deg,#00000012 0 2px,transparent 2px 40px);padding:16px;border-radius:6px;min-height:var(--h);color:#f4ecd8}
-#album h2{margin:0 0 4px;font-size:18px}#album p{margin:0 0 12px;font-size:12px;opacity:.8}
-.sg{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:14px}
-.sl{aspect-ratio:3/4;border:6px dotted #f4ecd8;background:#00000026;display:flex;align-items:center;justify-content:center;font-size:34px;color:#f4ecd8aa;cursor:pointer;position:relative;overflow:hidden;padding:0;font-family:inherit}
-.sl.f{background:#fdf8ea center/cover;color:#4a3a2a;align-items:flex-end;justify-content:center}
-.sl .dt{background:#fdf8eacc;font-size:11px;line-height:1.3;width:100%;text-align:center;padding:2px 0;color:#4a3a2a}.sl .lk{position:absolute;top:2px;right:4px;font-size:11px;background:#fdf8eacc;color:#8b2e2e;padding:0 4px;border-radius:8px}
+#album{display:none;overflow-x:auto;overflow-y:hidden;border:2px solid var(--ink);border-radius:4px;-webkit-overflow-scrolling:touch;font-family:var(--f)}
+#abook{position:relative;width:calc(var(--h)*16/7);height:var(--h);color:var(--ink)}#abook>svg{position:absolute;inset:0;width:100%;height:100%}
+.pg{position:absolute;top:16%;height:68.6%;width:38.75%;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:calc(var(--h)*.03)}.pg.l{left:9.4%}.pg.r{left:51.9%}
+.sl{height:100%;min-height:0;aspect-ratio:3/4;justify-self:center;border:calc(var(--h)*.012) dotted #fffdf5;outline:2px solid var(--ink);outline-offset:calc(var(--h)*-.012);background:#fffdf5 center/cover;box-shadow:1px 2px 0 #0003;display:flex;align-items:flex-end;justify-content:center;cursor:pointer;position:relative;overflow:hidden;padding:0;font-family:var(--f);color:var(--ink);border-radius:0}
+.sl.e{background:transparent;border:3px dashed #8a7458;outline:none;box-shadow:none;align-items:center;font-size:calc(var(--h)*.09);color:#8a7458}
+.sl .dt{background:#fdf8eacc;font-size:calc(var(--h)*.024);line-height:1.3;width:100%;text-align:center;padding:1px 0;border-top:1.5px solid var(--ink)}.sl .lk{position:absolute;top:2px;right:3px;font-size:calc(var(--h)*.024);background:#fdf8eacc;color:var(--wax);padding:0 5px;border:1.5px solid var(--ink);border-radius:9px}
+.an{position:absolute;top:86.2%;display:flex;gap:8px;align-items:center;font-size:calc(var(--h)*.025);color:#8a7458}.an.l{left:9.4%}.an.r{right:9.4%}.an button{font-size:calc(var(--h)*.025);padding:0 10px}
+#sm,#sm button,#sm input{font-family:var(--f)}.an button:disabled{opacity:.35;cursor:default}
 #sm{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:50;padding:12px}#sm.on{display:flex}
 #sm .bx{background:var(--card);color:var(--ink);max-width:420px;width:100%;max-height:92vh;overflow:auto;padding:12px;border-radius:6px}
 #sm img{width:100%;max-height:50vh;object-fit:contain;background:#00000010}#sm .c{font-size:13px;border-bottom:1px dashed var(--line);padding:3px 0}
@@ -279,11 +281,27 @@ function sendAnim(data,si,done){const m=$('mail');document.querySelectorAll('#ma
 let PH={},LK={},sOpen=null,cUn=null;const MINSL=12;
 const stampList=()=>Object.values(PH).sort((a,b)=>(LK[b.id]?.n||0)-(LK[a.id]?.n||0)||b.t-a.t);
 const DL={'12/12':'12/12 SAT.','12/13':'12/13 SUN.'};
-function renderAlbum(){const A=$('album');A.innerHTML='<h2>📖 集郵冊</h2><p>點「＋」上傳照片，公開給所有人使用；讚數越高排越前面。寄信時可挑選這些郵票。</p>';
- const g=document.createElement('div');g.className='sg';const l=stampList();
- l.forEach(p=>{const b=document.createElement('button');b.className='sl f';b.style.backgroundImage='url('+p.img+')';b.innerHTML='<span class="lk">♥ '+(LK[p.id]?.n||0)+'</span><span class="dt">'+(DL[p.date]||p.date)+'</span>';b.onclick=()=>openStamp(p.id);g.append(b)});
- const empt=Math.max(3,MINSL-l.length);for(let i=0;i<empt;i++){const b=document.createElement('button');b.className='sl';b.textContent='＋';b.onclick=()=>{if(!db){toast('尚未連上資料庫');return}$('pf').click()};g.append(b)}
- A.append(g);if(sOpen)drawStamp()}
+let apage=0;
+const ABG='<filter id="wa"><feTurbulence baseFrequency=".015" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="5"/></filter><g filter="url(#wa)"><rect width="1600" height="700" fill="#b98b5e"/>'+[0,1,2,3,4].map(i=>'<path d="M0 '+(60+i*140)+' q400 -14 800 0 t800 0" stroke="#a37848" stroke-width="3" fill="none"/>').join('')+
+ '<rect x="86" y="46" width="1440" height="628" rx="14" fill="#00000030"/><rect x="80" y="36" width="1440" height="628" rx="14" fill="#7a2e2e" stroke="#4a3a2a" stroke-width="5"/><rect x="98" y="52" width="1404" height="596" rx="8" fill="none" stroke="#e8a317" stroke-width="2" stroke-dasharray="10 6"/>'+
+ '<rect x="112" y="72" width="686" height="576" fill="#d9c9a3" stroke="#4a3a2a" stroke-width="2"/><rect x="802" y="72" width="686" height="576" fill="#d9c9a3" stroke="#4a3a2a" stroke-width="2"/>'+
+ '<rect x="118" y="62" width="680" height="576" fill="#ebdfc0" stroke="#4a3a2a" stroke-width="3"/><rect x="802" y="62" width="680" height="576" fill="#ebdfc0" stroke="#4a3a2a" stroke-width="3"/>'+
+ '<rect x="792" y="58" width="16" height="584" fill="#cdb48a" stroke="#4a3a2a" stroke-width="3"/>'+
+ '<path d="M80 36 h54 l-54 54z M1520 36 h-54 l54 54z M80 664 h54 l-54 -54z M1520 664 h-54 l54 -54z" fill="#e8a317" stroke="#4a3a2a" stroke-width="3"/>'+
+ '<path d="M1380 638 v52 l14 -14 14 14 v-52z" fill="#c23b32" stroke="#4a3a2a" stroke-width="3"/></g>'+
+ '<text x="458" y="102" text-anchor="middle" font-size="30" fill="#8a7458" style="font-family:var(--f);letter-spacing:.3em">集 郵 冊</text>'+
+ '<text x="1142" y="102" text-anchor="middle" font-size="22" fill="#8b2e2e" style="font-family:var(--f)">12/12 SAT.　·　12/13 SUN.</text>'+
+ '<text x="800" y="693" text-anchor="middle" font-size="17" fill="#4a3a2a" style="font-family:var(--f);letter-spacing:.1em">點「＋」上傳照片，公開給所有人使用 · 讚越多排越前面</text>';
+function renderAlbum(){const A=$('album'),l=stampList(),per=12,tot=Math.max(per,Math.ceil((l.length+3)/per)*per),pages=tot/per;apage=Math.min(apage,pages-1);
+ A.innerHTML='';const bk=document.createElement('div');bk.id='abook';bk.innerHTML='<svg viewBox="0 0 1600 700" preserveAspectRatio="none">'+ABG+'</svg>';
+ const L=document.createElement('div'),R=document.createElement('div');L.className='pg l';R.className='pg r';
+ for(let k=0;k<per;k++){const i=apage*per+k,b=document.createElement('button');
+  if(l[i]){const p=l[i];b.className='sl';b.style.backgroundImage='url('+p.img+')';b.innerHTML='<span class="lk">♥ '+(LK[p.id]?.n||0)+'</span><span class="dt">'+(DL[p.date]||p.date)+'</span>';b.onclick=()=>openStamp(p.id)}
+  else{b.className='sl e';b.textContent='＋';b.onclick=()=>{if(!db){toast('尚未連上資料庫');return}$('pf').click()}}
+  (k<6?L:R).append(b)}
+ const nav=(c,t)=>{const d=document.createElement('div');d.className='an '+c;d.append(...t);return d},pv=document.createElement('button'),nx=document.createElement('button');
+ pv.textContent='◀';nx.textContent='▶';pv.disabled=apage<=0;nx.disabled=apage>=pages-1;pv.onclick=()=>{apage--;renderAlbum()};nx.onclick=()=>{apage++;renderAlbum()};
+ bk.append(L,R,nav('l',[pv,'第 '+(apage+1)+' / '+pages+' 頁']),nav('r',[nx]));A.append(bk);if(sOpen)drawStamp()}
 $('pf').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const im=new Image(),u=URL.createObjectURL(f);
  im.onload=()=>{const k=Math.min(1,420/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);
   const img=c.toDataURL('image/jpeg',.72);let date='';const B=$('smb');B.innerHTML='<img src="'+img+'"><p>這場演出的日期：</p><div class="bar"></div><p style="font-size:12px">上傳後會完全公開，任何人都能下載與使用。</p>';
